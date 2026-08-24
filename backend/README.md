@@ -10,11 +10,21 @@ Trello風タスク管理アプリのバックエンド雛形（Spring Boot）。
 ## 起動方法
 
 ### 通常起動（PostgreSQL接続）
-`src/main/resources/application.properties` の接続情報（DB名・ユーザー・パスワード）に合わせてPostgreSQLを用意した上で実行する。
+リポジトリ直下の `docker-compose.yml` でPostgreSQLをDocker上に用意している。`src/main/resources/application.properties` の接続情報（DB名・ユーザー・パスワード）と一致させてあるため、以下の手順で起動できる。
 
 ```
+# 1. リポジトリ直下でPostgreSQLコンテナを起動する
+docker compose up -d
+
+# 2. コンテナが起動完了（healthy）になっていることを確認する
+docker compose ps
+
+# 3. backendディレクトリでSpring Bootを起動する
+cd backend
 ./gradlew bootRun
 ```
+
+PostgreSQLコンテナを停止する場合は `docker compose down` を実行する（データは名前付きボリュームに残る）。データも含めて完全にリセットしたい場合は `docker compose down -v` を実行する。
 
 ### PostgreSQLがまだない場合の動作確認
 組み込みDB（H2）を使った起動確認用のプロファイルを用意している。データは保存されず、あくまで雛形が正しく起動するかの確認用。
