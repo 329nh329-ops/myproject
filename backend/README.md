@@ -45,3 +45,18 @@ curl http://localhost:8081/api/health
 ```
 curl http://localhost:8080/api/health
 ```
+
+## カード取得API（READ）
+
+起動時に `data.sql` でテストデータ（LISTS 3件、CARDS 4件）が自動投入される（起動のたびに洗い替えされる）。
+
+```
+# 全カード取得
+curl http://localhost:8080/api/cards
+
+# ID指定で1件取得
+curl http://localhost:8080/api/cards/1
+
+# リスト（ステータス）別取得
+curl "http://localhost:8080/api/cards?listId=1"
+```
