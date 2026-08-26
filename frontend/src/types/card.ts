@@ -19,3 +19,12 @@ export interface CreateCardInput {
   priority: Priority;
   dueDate: string | null;
 }
+
+export interface UpdateCardInput {
+  title: string;
+  description: string;
+  priority: Priority;
+  dueDate: string | null;
+}
+
+export type SortBy = "priority" | "due";

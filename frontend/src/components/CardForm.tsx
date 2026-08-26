@@ -1,22 +1,30 @@
 import { useState } from "react";
-import { createCard } from "../api/cards";
-import type { Priority } from "../types/card";
+import { createCard, updateCard } from "../api/cards";
+import type { Card, Priority } from "../types/card";
 
 const PRIORITIES: Priority[] = ["高", "中", "低"];
 
-export function CardForm({
-  listId,
-  onCreated,
-  onCancel,
-}: {
-  listId: number;
-  onCreated: () => void;
-  onCancel: () => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("中");
-  const [dueDate, setDueDate] = useState("");
+type CardFormProps =
+  | {
+      mode: "create";
+      listId: number;
+      onSaved: () => void;
+      onCancel: () => void;
+    }
+  | {
+      mode: "edit";
+      card: Card;
+      onSaved: () => void;
+      onCancel: () => void;
+    };
+
+export function CardForm(props: CardFormProps) {
+  const initial = props.mode === "edit" ? props.card : null;
+
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [priority, setPriority] = useState<Priority>(initial?.priority ?? "中");
+  const [dueDate, setDueDate] = useState(initial?.dueDate ?? "");
   const [titleError, setTitleError] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,16 +40,21 @@ export function CardForm({
     setSubmitError(null);
     setIsSubmitting(true);
     try {
-      await createCard({
-        listId,
+      const input = {
         title: trimmedTitle,
         description: description.trim(),
         priority,
         dueDate: dueDate || null,
-      });
-      onCreated();
+      };
+
+      if (props.mode === "create") {
+        await createCard({ listId: props.listId, ...input });
+      } else {
+        await updateCard(props.card.id, input);
+      }
+      props.onSaved();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "登録に失敗しました");
+      setSubmitError(err instanceof Error ? err.message : "保存に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -83,7 +96,7 @@ export function CardForm({
 
       <input
         type="date"
-        value={dueDate}
+        value={dueDate ?? ""}
         onChange={(e) => setDueDate(e.target.value)}
         className="rounded border border-gray-300 px-2 py-1 text-sm"
       />
@@ -97,11 +110,11 @@ export function CardForm({
           disabled={isSubmitting}
           className="flex-1 rounded bg-blue-900 py-1 text-sm text-white disabled:opacity-50"
         >
-          追加
+          {props.mode === "create" ? "追加" : "保存"}
         </button>
         <button
           type="button"
-          onClick={onCancel}
+          onClick={props.onCancel}
           disabled={isSubmitting}
           className="flex-1 rounded bg-gray-200 py-1 text-sm text-gray-800 disabled:opacity-50"
         >

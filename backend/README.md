@@ -89,7 +89,7 @@ curl http://localhost:8080/api/health
 
 ## API仕様
 
-現時点ではカードの参照系（READ）と新規作成（CREATE）を実装している。更新・削除は今後実装予定（[docs/機能要件.md](../docs/機能要件.md) 9章参照）。
+現時点ではカードの参照系（READ）・新規作成（CREATE）・更新（UPDATE）を実装している。削除は今後実装予定（[docs/機能要件.md](../docs/機能要件.md) 9章参照）。
 
 ### カード一覧取得
 
@@ -153,6 +153,65 @@ Content-Type: application/json
 - `displayOrder`（リスト内の並び順）はサーバー側で自動採番される（対象リストの末尾に追加）
 - 成功時は201 Createdとともに、採番されたIDを含むカード情報を返す
 
+### カード内容の更新
+
+```
+PUT /api/cards/{id}
+Content-Type: application/json
+```
+
+**リクエストボディ例**
+```json
+{
+  "title": "更新後のタイトル",
+  "description": "詳細（任意）",
+  "priority": "低",
+  "dueDate": "2026-11-01"
+}
+```
+
+- `title`, `priority` は必須。`title`が空の場合は400を返す
+- 成功時は200 OKとともに、更新後のカード情報（`updatedAt`も更新済み）を返す
+- 所属リスト（`listId`）や並び順（`displayOrder`）はこのAPIでは変更されない（変更する場合は下記の移動APIを使う）
+
+### カードの移動・並び替え（ドラッグ＆ドロップ用）
+
+```
+PATCH /api/cards/{id}/move
+Content-Type: application/json
+```
+
+**リクエストボディ例**
+```json
+{
+  "listId": 2,
+  "beforeCardId": 5
+}
+```
+
+- `listId`：移動先のリストID（同一リスト内での並び替えの場合は現在と同じIDを指定する）
+- `beforeCardId`：このIDのカードの直前に挿入する。リストの末尾に置く場合は`null`を指定する
+- 対象カードの`listId`・`displayOrder`を更新するとともに、移動先リストに残る他カードの`displayOrder`も振り直される
+- 成功時は200 OKとともに、**移動先リストに属する全カード**（更新後の`displayOrder`を反映したもの）を配列で返す
+
+### カードの一括並び替え（優先度順・期限順ボタン用）
+
+```
+PATCH /api/lists/{listId}/cards/sort
+Content-Type: application/json
+```
+
+**リクエストボディ例**
+```json
+{
+  "sortBy": "priority"
+}
+```
+
+- `sortBy`：`"priority"`（優先度: 高→中→低の順）または`"due"`（期限の早い順。未設定は末尾）
+- 指定したリスト内の全カードの`displayOrder`を、ソート結果の順に振り直す
+- 成功時は200 OKとともに、**そのリストに属する全カード**（更新後の`displayOrder`を反映したもの）を配列で返す
+
 ### 動作確認コマンド
 
 ```
@@ -169,7 +228,22 @@ curl -X POST http://localhost:8080/api/cards \
 
 # リスト（ステータス）別取得
 curl "http://localhost:8080/api/cards?listId=1"
+
+# カード内容の更新
+curl -X PUT http://localhost:8080/api/cards/1 \
+  -H "Content-Type: application/json" \
+  -d '{"title":"更新後のタイトル","description":"","priority":"低","dueDate":null}'
+
+# カードの移動（リスト2の末尾へ）
+curl -X PATCH http://localhost:8080/api/cards/1/move \
+  -H "Content-Type: application/json" \
+  -d '{"listId":2,"beforeCardId":null}'
+
+# リスト内の一括並び替え（優先度順）
+curl -X PATCH http://localhost:8080/api/lists/1/cards/sort \
+  -H "Content-Type: application/json" \
+  -d '{"sortBy":"priority"}'
 ```
 
 ## CORS設定
-フロントエンド（Vite開発サーバー、`http://localhost:5173`）からのアクセスを許可するCORS設定を `config/WebConfig.java` に追加している。現時点ではGETメソッドのみ許可している。
+フロントエンド（Vite開発サーバー、`http://localhost:5173`）からのアクセスを許可するCORS設定を `config/WebConfig.java` に追加している。現時点ではGET, POST, PUT, PATCHメソッドを許可している。
