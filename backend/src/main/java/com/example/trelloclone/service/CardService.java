@@ -1,18 +1,25 @@
 package com.example.trelloclone.service;
 
 import com.example.trelloclone.dto.CardCreateRequest;
+import com.example.trelloclone.dto.CardMoveRequest;
+import com.example.trelloclone.dto.CardSortRequest;
+import com.example.trelloclone.dto.CardUpdateRequest;
 import com.example.trelloclone.entity.Card;
 import com.example.trelloclone.entity.TaskList;
 import com.example.trelloclone.repository.CardRepository;
 import com.example.trelloclone.repository.TaskListRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
 public class CardService {
+
+    private static final Map<String, Integer> PRIORITY_ORDER = Map.of("高", 0, "中", 1, "低", 2);
 
     private final CardRepository cardRepository;
     private final TaskListRepository taskListRepository;
@@ -54,5 +61,61 @@ public class CardService {
         card.setDisplayOrder(nextDisplayOrder);
 
         return cardRepository.save(card);
+    }
+
+    public Card update(Long id, CardUpdateRequest request) {
+        Card card = findById(id);
+        card.setTitle(request.title());
+        card.setDescription(request.description());
+        card.setPriority(request.priority());
+        card.setDueDate(request.dueDate());
+        return cardRepository.save(card);
+    }
+
+    public List<Card> move(Long id, CardMoveRequest request) {
+        Card movingCard = findById(id);
+        TaskList targetList = taskListRepository.findById(request.listId())
+                .orElseThrow(() -> new NoSuchElementException("List not found: id=" + request.listId()));
+
+        List<Card> targetListCards = new ArrayList<>(cardRepository.findByTaskListId(request.listId()));
+        targetListCards.removeIf(c -> c.getId().equals(movingCard.getId()));
+        targetListCards.sort(Comparator.comparing(Card::getDisplayOrder));
+
+        int insertAt = targetListCards.size();
+        if (request.beforeCardId() != null) {
+            for (int i = 0; i < targetListCards.size(); i++) {
+                if (targetListCards.get(i).getId().equals(request.beforeCardId())) {
+                    insertAt = i;
+                    break;
+                }
+            }
+        }
+        targetListCards.add(insertAt, movingCard);
+
+        movingCard.setTaskList(targetList);
+        for (int i = 0; i < targetListCards.size(); i++) {
+            targetListCards.get(i).setDisplayOrder(i);
+        }
+
+        return cardRepository.saveAll(targetListCards);
+    }
+
+    public List<Card> sort(Long listId, CardSortRequest request) {
+        taskListRepository.findById(listId)
+                .orElseThrow(() -> new NoSuchElementException("List not found: id=" + listId));
+
+        List<Card> cards = new ArrayList<>(cardRepository.findByTaskListId(listId));
+
+        if ("priority".equals(request.sortBy())) {
+            cards.sort(Comparator.comparing(card -> PRIORITY_ORDER.getOrDefault(card.getPriority(), Integer.MAX_VALUE)));
+        } else {
+            cards.sort(Comparator.comparing(Card::getDueDate, Comparator.nullsLast(Comparator.naturalOrder())));
+        }
+
+        for (int i = 0; i < cards.size(); i++) {
+            cards.get(i).setDisplayOrder(i);
+        }
+
+        return cardRepository.saveAll(cards);
     }
 }

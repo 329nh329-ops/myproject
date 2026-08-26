@@ -1,4 +1,5 @@
 import type { Card, Priority } from "../types/card";
+import { CardForm } from "./CardForm";
 
 const PRIORITY_CLASSES: Record<Priority, string> = {
   高: "text-red-600",
@@ -18,9 +19,53 @@ function isOverdue(dateStr: string | null): boolean {
   return dateStr < today;
 }
 
-export function CardItem({ card }: { card: Card }) {
+export function CardItem({
+  card,
+  isEditing,
+  onStartEdit,
+  onSaved,
+  onCancelEdit,
+  onDragStart,
+  onDragEnd,
+  onDropBefore,
+  isDragging,
+}: {
+  card: Card;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onSaved: () => void;
+  onCancelEdit: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDropBefore: () => void;
+  isDragging: boolean;
+}) {
+  if (isEditing) {
+    return <CardForm mode="edit" card={card} onSaved={onSaved} onCancel={onCancelEdit} />;
+  }
+
   return (
-    <div className="rounded-md bg-white p-2.5 shadow-sm">
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.stopPropagation();
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onDropBefore();
+      }}
+      onClick={onStartEdit}
+      className={`cursor-pointer rounded-md bg-white p-2.5 shadow-sm ${
+        isDragging ? "opacity-50" : ""
+      }`}
+    >
       <div className="mb-1.5 truncate font-bold">{card.title}</div>
       <div className="flex items-center justify-between text-xs text-gray-600">
         <span className={`font-bold ${PRIORITY_CLASSES[card.priority]}`}>
