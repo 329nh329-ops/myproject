@@ -89,7 +89,7 @@ curl http://localhost:8080/api/health
 
 ## API仕様
 
-現時点ではカードの参照系（READ）のみ実装している。作成・更新・削除は今後実装予定（[docs/機能要件.md](../docs/機能要件.md) 9章参照）。
+現時点ではカードの参照系（READ）と新規作成（CREATE）を実装している。更新・削除は今後実装予定（[docs/機能要件.md](../docs/機能要件.md) 9章参照）。
 
 ### カード一覧取得
 
@@ -130,6 +130,29 @@ GET /api/cards/{id}
 
 指定したIDのカードを1件取得する。存在しないIDを指定した場合は404を返す。
 
+### カード新規作成
+
+```
+POST /api/cards
+Content-Type: application/json
+```
+
+**リクエストボディ例**
+```json
+{
+  "listId": 1,
+  "title": "新しいタスク",
+  "description": "詳細（任意）",
+  "priority": "中",
+  "dueDate": "2026-10-01"
+}
+```
+
+- `listId`, `title`, `priority` は必須。`title`が空、または存在しない`listId`を指定した場合はエラーを返す（`title`空の場合400、`listId`不正の場合404）
+- `description`, `dueDate` は任意（省略時はそれぞれ空文字・nullを送る）
+- `displayOrder`（リスト内の並び順）はサーバー側で自動採番される（対象リストの末尾に追加）
+- 成功時は201 Createdとともに、採番されたIDを含むカード情報を返す
+
 ### 動作確認コマンド
 
 ```
@@ -138,6 +161,11 @@ curl http://localhost:8080/api/cards
 
 # ID指定で1件取得
 curl http://localhost:8080/api/cards/1
+
+# カード新規作成
+curl -X POST http://localhost:8080/api/cards \
+  -H "Content-Type: application/json" \
+  -d '{"listId":1,"title":"新しいタスク","description":"","priority":"中","dueDate":null}'
 
 # リスト（ステータス）別取得
 curl "http://localhost:8080/api/cards?listId=1"
