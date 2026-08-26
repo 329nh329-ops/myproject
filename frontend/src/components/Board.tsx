@@ -9,11 +9,16 @@ export function Board() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  function loadCards() {
+    setError(null);
     fetchCards()
       .then(setCards)
       .catch((err: Error) => setError(err.message))
       .finally(() => setIsLoading(false));
+  }
+
+  useEffect(() => {
+    loadCards();
   }, []);
 
   if (isLoading) {
@@ -31,6 +36,7 @@ export function Board() {
           key={list.id}
           list={list}
           cards={cards.filter((card) => card.listId === list.id)}
+          onCardCreated={loadCards}
         />
       ))}
     </main>
