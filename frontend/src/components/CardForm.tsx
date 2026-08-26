@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createCard, updateCard } from "../api/cards";
+import { createCard, deleteCard, updateCard } from "../api/cards";
 import type { Card, Priority } from "../types/card";
 
 const PRIORITIES: Priority[] = ["高", "中", "低"];
@@ -8,12 +8,14 @@ type CardFormProps =
   | {
       mode: "create";
       listId: number;
+      // 保存完了後に呼ばれ、呼び出し元にカード一覧の再取得を促す
       onSaved: () => void;
       onCancel: () => void;
     }
   | {
       mode: "edit";
       card: Card;
+      // 保存または削除の完了後に呼ばれ、呼び出し元にカード一覧の再取得を促す
       onSaved: () => void;
       onCancel: () => void;
     };
@@ -55,6 +57,22 @@ export function CardForm(props: CardFormProps) {
       props.onSaved();
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "保存に失敗しました");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (props.mode !== "edit") return;
+    if (!confirm("このカードを削除しますか？")) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+    try {
+      await deleteCard(props.card.id);
+      props.onSaved();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "削除に失敗しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -112,6 +130,16 @@ export function CardForm(props: CardFormProps) {
         >
           {props.mode === "create" ? "追加" : "保存"}
         </button>
+        {props.mode === "edit" && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isSubmitting}
+            className="flex-1 rounded bg-red-600 py-1 text-sm text-white disabled:opacity-50"
+          >
+            削除
+          </button>
+        )}
         <button
           type="button"
           onClick={props.onCancel}

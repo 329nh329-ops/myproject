@@ -100,6 +100,20 @@ public class CardService {
         return cardRepository.saveAll(targetListCards);
     }
 
+    public void delete(Long id) {
+        Card card = findById(id);
+        Long listId = card.getTaskList().getId();
+
+        cardRepository.delete(card);
+
+        List<Card> remainingCards = new ArrayList<>(cardRepository.findByTaskListId(listId));
+        remainingCards.sort(Comparator.comparing(Card::getDisplayOrder));
+        for (int i = 0; i < remainingCards.size(); i++) {
+            remainingCards.get(i).setDisplayOrder(i);
+        }
+        cardRepository.saveAll(remainingCards);
+    }
+
     public List<Card> sort(Long listId, CardSortRequest request) {
         taskListRepository.findById(listId)
                 .orElseThrow(() -> new NoSuchElementException("List not found: id=" + listId));

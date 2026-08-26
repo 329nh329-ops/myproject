@@ -89,7 +89,7 @@ curl http://localhost:8080/api/health
 
 ## API仕様
 
-現時点ではカードの参照系（READ）・新規作成（CREATE）・更新（UPDATE）を実装している。削除は今後実装予定（[docs/機能要件.md](../docs/機能要件.md) 9章参照）。
+現時点ではカードの参照系（READ）・新規作成（CREATE）・更新（UPDATE）・削除（DELETE）を実装している。
 
 ### カード一覧取得
 
@@ -212,6 +212,16 @@ Content-Type: application/json
 - 指定したリスト内の全カードの`displayOrder`を、ソート結果の順に振り直す
 - 成功時は200 OKとともに、**そのリストに属する全カード**（更新後の`displayOrder`を反映したもの）を配列で返す
 
+### カードの削除
+
+```
+DELETE /api/cards/{id}
+```
+
+- 論理削除ではなく**物理削除**（データベースの行を完全に削除する）
+- 削除後、同一リストに残ったカードの`displayOrder`を`0, 1, 2...`に詰め直す
+- 成功時は204 No Contentを返す。存在しないIDを指定した場合は404を返す
+
 ### 動作確認コマンド
 
 ```
@@ -243,7 +253,10 @@ curl -X PATCH http://localhost:8080/api/cards/1/move \
 curl -X PATCH http://localhost:8080/api/lists/1/cards/sort \
   -H "Content-Type: application/json" \
   -d '{"sortBy":"priority"}'
+
+# カードの削除
+curl -X DELETE http://localhost:8080/api/cards/1
 ```
 
 ## CORS設定
-フロントエンド（Vite開発サーバー、`http://localhost:5173`）からのアクセスを許可するCORS設定を `config/WebConfig.java` に追加している。現時点ではGET, POST, PUT, PATCHメソッドを許可している。
+フロントエンド（Vite開発サーバー、`http://localhost:5173`）からのアクセスを許可するCORS設定を `config/WebConfig.java` に追加している。現時点ではGET, POST, PUT, PATCH, DELETEメソッドを許可している。

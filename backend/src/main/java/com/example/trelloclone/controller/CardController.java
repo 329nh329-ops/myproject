@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -67,6 +68,12 @@ public class CardController {
     @PatchMapping("/api/lists/{listId}/cards/sort")
     public List<CardResponse> sortCards(@PathVariable Long listId, @RequestBody @Valid CardSortRequest request) {
         return cardService.sort(listId, request).stream().map(CardResponse::from).toList();
+    }
+
+    @DeleteMapping("/api/cards/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCard(@PathVariable Long id) {
+        cardService.delete(id);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
