@@ -65,3 +65,12 @@ export async function sortCards(listId: number, sortBy: SortBy): Promise<Card[]>
   }
   return response.json();
 }
+
+export async function deleteCard(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/cards/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    return parseErrorOrThrow(response, "カードの削除に失敗しました");
+  }
+}
