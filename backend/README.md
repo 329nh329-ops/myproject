@@ -19,21 +19,27 @@ Trello風タスク管理アプリのバックエンド（Spring Boot）。
 ```
 backend/src/main/java/com/example/trelloclone/
 ├── TrelloCloneApplication.java   起動クラス
-├── HealthController.java         疎通確認用（/api/health）
 ├── config/
 │   └── WebConfig.java            CORS設定（フロントエンドのVite開発サーバーからのアクセスを許可）
 ├── controller/
-│   └── CardController.java       カードAPI
+│   ├── HealthController.java     疎通確認用（/api/health）
+│   ├── CardController.java       カードAPI
+│   └── ApiExceptionHandler.java  例外ハンドラ（@RestControllerAdvice、404・400の共通変換）
 ├── service/
-│   └── CardService.java          カードのビジネスロジック
+│   └── CardService.java          カードのビジネスロジック（CRUD・移動・並び替え、@Transactional）
 ├── repository/
 │   ├── TaskListRepository.java   LISTSテーブルへのアクセス
 │   └── CardRepository.java       CARDSテーブルへのアクセス
 ├── entity/
 │   ├── TaskList.java             LISTSテーブルに対応するエンティティ
-│   └── Card.java                 CARDSテーブルに対応するエンティティ
+│   ├── Card.java                 CARDSテーブルに対応するエンティティ
+│   └── Priority.java             優先度（高・中・低）を表すenum
 └── dto/
-    └── CardResponse.java         カードAPIのレスポンス形式
+    ├── CardResponse.java         カードAPIのレスポンス形式
+    ├── CardCreateRequest.java    カード新規作成のリクエスト形式
+    ├── CardUpdateRequest.java    カード内容更新のリクエスト形式
+    ├── CardMoveRequest.java      カード移動・並び替えのリクエスト形式
+    └── CardSortRequest.java      カード一括並び替えのリクエスト形式
 ```
 
 ## データベース構成
