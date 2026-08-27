@@ -72,7 +72,7 @@ export function BoardColumn({
       </div>
 
       <div className="flex flex-col gap-2">
-        {cards.map((card) => (
+        {cards.map((card, index) => (
           <CardItem
             key={card.id}
             card={card}
@@ -82,7 +82,12 @@ export function BoardColumn({
             onCancelEdit={onCancelEdit}
             onDragStart={() => onDragStart(card.id)}
             onDragEnd={onDragEnd}
-            onDropBefore={() => onDropBefore(list.id, card.id)}
+            onDropAt={(position) => {
+              // "before"はこのカードの直前、"after"は次のカードの直前（次が無ければ末尾=null）に挿入する
+              const beforeCardId =
+                position === "before" ? card.id : (cards[index + 1]?.id ?? null);
+              onDropBefore(list.id, beforeCardId);
+            }}
             isDragging={draggingCardId === card.id}
           />
         ))}
@@ -106,7 +111,7 @@ export function BoardColumn({
           onClick={() => setIsAdding(true)}
           className="mt-2 w-full rounded px-2 py-1.5 text-left text-sm text-blue-900 hover:bg-gray-300"
         >
-          ＋ カードを追加
+          ＋ タスクを追加
         </button>
       )}
     </section>
