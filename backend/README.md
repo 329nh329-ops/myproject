@@ -12,7 +12,7 @@ Trello風タスク管理アプリのバックエンド（Spring Boot）。
 ## 技術構成
 - Java 21（LTS）
 - Spring Boot 4.1系（Gradle, Spring Data JPA）
-- データベース：PostgreSQL 16系（本番用。Docker上で起動する）
+- データベース：PostgreSQL 18系（本番用。Docker上で起動する）
 
 ## ディレクトリ構成
 
