@@ -260,3 +260,13 @@ curl -X DELETE http://localhost:8080/api/cards/1
 
 ## CORS設定
 フロントエンド（Vite開発サーバー、`http://localhost:5173`）からのアクセスを許可するCORS設定を `config/WebConfig.java` に追加している。現時点ではGET, POST, PUT, PATCH, DELETEメソッドを許可している。
+
+## コード品質チェック（Checkstyle）
+
+未使用import、空のcatchブロック、`==`による文字列比較などバグにつながりやすい項目を中心にチェックするCheckstyleを導入している（設定：`config/checkstyle/checkstyle.xml`）。
+
+```
+./gradlew checkstyleMain
+```
+
+`./gradlew check`（テストも含めた全チェック）の中でも実行される。違反があるとビルドが失敗する（`maxWarnings = 0`）。マジックナンバー検出はアノテーション内の値（`@Size(max = 50)`等）を除き情報レベルに留めており、ビルドを失敗させない。

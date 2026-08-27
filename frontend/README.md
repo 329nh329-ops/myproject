@@ -52,6 +52,14 @@ npm run dev
 2. ブラウザの開発者ツールのNetworkタブで `GET http://localhost:8080/api/cards` が200で返っていることを確認できる
 3. バックエンドの `data.sql` で投入されるテストデータ（未着手2件・進行中1件・完了1件、計4件）が、ブラウザ上の3リストに正しく振り分けて表示される
 
+## コード品質チェック（lint）
+
+[oxlint](https://oxc.rs/docs/guide/usage/linter.html)（設定：`.oxlintrc.json`）でReactのルール違反（Hooksのルール違反等）を検出する。
+
+```
+npm run lint
+```
+
 ## 現在実装している機能・実装していない機能
 
 [docs/機能要件.md](../docs/機能要件.md) に定義された機能のうち、現時点でフロントエンドに実装済みなのは以下のみ。
