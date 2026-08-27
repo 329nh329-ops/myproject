@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchCards, moveCard, sortCards } from "../api/cards";
 import { TASK_LISTS } from "../constants/lists";
 import type { Card, SortBy } from "../types/card";
@@ -11,17 +11,22 @@ export function Board() {
   const [editingCardId, setEditingCardId] = useState<number | null>(null);
   const [draggingCardId, setDraggingCardId] = useState<number | null>(null);
 
-  function loadCards() {
+  const loadCards = useCallback(() => {
     setError(null);
     return fetchCards()
       .then(setCards)
       .catch((err: Error) => setError(err.message))
       .finally(() => setIsLoading(false));
-  }
-
-  useEffect(() => {
-    loadCards();
   }, []);
+
+  // マウント時にサーバーからカード一覧を取得し、以降の操作(移動・並び替え・保存・削除)は
+  // それぞれのイベントハンドラの中でAPIを呼んだ後にloadCardsを呼び直す。
+  // loadCards内のsetStateはfetch完了後の非同期コールバックで呼ばれるため、
+  // このeffect自体が同期的にsetStateしているわけではない(oxlintの誤検知)。
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect
+    loadCards();
+  }, [loadCards]);
 
   async function handleDropBefore(listId: number, beforeCardId: number | null) {
     if (draggingCardId === null || draggingCardId === beforeCardId) {

@@ -1,6 +1,7 @@
 package com.example.trelloclone.dto;
 
 import com.example.trelloclone.entity.Card;
+import com.example.trelloclone.entity.Priority;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,7 +11,7 @@ public record CardResponse(
         Long listId,
         String title,
         String description,
-        String priority,
+        Priority priority,
         LocalDate dueDate,
         Integer displayOrder,
         LocalDateTime createdAt,

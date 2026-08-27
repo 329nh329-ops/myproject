@@ -9,17 +9,15 @@ import com.example.trelloclone.entity.TaskList;
 import com.example.trelloclone.repository.CardRepository;
 import com.example.trelloclone.repository.TaskListRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
 public class CardService {
-
-    private static final Map<String, Integer> PRIORITY_ORDER = Map.of("高", 0, "中", 1, "低", 2);
 
     private final CardRepository cardRepository;
     private final TaskListRepository taskListRepository;
@@ -46,9 +44,7 @@ public class CardService {
         TaskList taskList = taskListRepository.findById(request.listId())
                 .orElseThrow(() -> new NoSuchElementException("List not found: id=" + request.listId()));
 
-        int nextDisplayOrder = cardRepository.findByTaskListId(request.listId()).stream()
-                .map(Card::getDisplayOrder)
-                .max(Comparator.naturalOrder())
+        int nextDisplayOrder = cardRepository.findMaxDisplayOrderByTaskListId(request.listId())
                 .map(order -> order + 1)
                 .orElse(0);
 
@@ -72,6 +68,7 @@ public class CardService {
         return cardRepository.save(card);
     }
 
+    @Transactional
     public List<Card> move(Long id, CardMoveRequest request) {
         Card movingCard = findById(id);
         TaskList targetList = taskListRepository.findById(request.listId())
@@ -100,6 +97,7 @@ public class CardService {
         return cardRepository.saveAll(targetListCards);
     }
 
+    @Transactional
     public void delete(Long id) {
         Card card = findById(id);
         Long listId = card.getTaskList().getId();
@@ -114,6 +112,7 @@ public class CardService {
         cardRepository.saveAll(remainingCards);
     }
 
+    @Transactional
     public List<Card> sort(Long listId, CardSortRequest request) {
         taskListRepository.findById(listId)
                 .orElseThrow(() -> new NoSuchElementException("List not found: id=" + listId));
@@ -121,7 +120,7 @@ public class CardService {
         List<Card> cards = new ArrayList<>(cardRepository.findByTaskListId(listId));
 
         if ("priority".equals(request.sortBy())) {
-            cards.sort(Comparator.comparing(card -> PRIORITY_ORDER.getOrDefault(card.getPriority(), Integer.MAX_VALUE)));
+            cards.sort(Comparator.comparing(card -> card.getPriority().ordinal()));
         } else {
             cards.sort(Comparator.comparing(Card::getDueDate, Comparator.nullsLast(Comparator.naturalOrder())));
         }
