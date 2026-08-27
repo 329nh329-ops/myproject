@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:18
     environment:
       POSTGRES_DB: trello_clone
       POSTGRES_USER: postgres
@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - trello-clone-db-data:/var/lib/postgresql/data
+      - trello-clone-db-data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d trello_clone"]
       interval: 5s
