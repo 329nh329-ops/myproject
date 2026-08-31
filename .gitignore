@@ -1,1 +1,15 @@
 .DS_Store
+
+# Terraform
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/*.tfstate
+infra/*.tfstate.*
+infra/terraform.tfvars
+infra/backend.hcl
+infra/tfplan.*
+infra/*.tfplan
+infra/*.pem
+
+# 本番環境変数
+.env.prod
