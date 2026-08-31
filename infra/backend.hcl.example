@@ -1,0 +1,1 @@
+bucket = "tfstateを保管するS3バケット名"

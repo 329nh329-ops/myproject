@@ -13,6 +13,7 @@
 | [docs/画面設計.md](./docs/画面設計.md) | 画面レイアウト・UI要素の詳細仕様 |
 | [docs/データベース設計.md](./docs/データベース設計.md) | ER図・テーブル定義 |
 | [docs/技術スタック.md](./docs/技術スタック.md) | 使用技術・バージョン |
+| [docs/インフラ構成.md](./docs/インフラ構成.md) | AWS上へのデプロイ構成（EC2 + RDS）・ディレクトリ構成 |
 | [backend/README.md](./backend/README.md) | バックエンドのセットアップ・API仕様 |
 | [frontend/README.md](./frontend/README.md) | フロントエンドのセットアップ・実装状況 |
 | [CLAUDE.md](./CLAUDE.md) | Git/GitHub運用ルール |
@@ -25,6 +26,7 @@ trello-clone/
 ├── frontend/   フロントエンド（TypeScript + React + Tailwind CSS）
 ├── prototype/  画面イメージ確認用の簡易プロトタイプ（HTML/CSS/JS、DB接続なし）
 ├── docs/       要件定義の詳細ドキュメント群
+├── infra/      AWSデプロイ用のTerraformコード（詳細は docs/インフラ構成.md 参照）
 └── docker-compose.yml   PostgreSQL起動用
 ```
 

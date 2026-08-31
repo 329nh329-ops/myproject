@@ -1,6 +1,6 @@
 import type { Card, CreateCardInput, SortBy, UpdateCardInput } from "../types/card";
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
 async function parseErrorOrThrow(response: Response, fallbackMessage: string): Promise<never> {
   const message = await response.text();
