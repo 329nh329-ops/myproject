@@ -1,4 +1,4 @@
-let nextId = 1;
+const STORAGE_KEY = "trello-clone-prototype-cards";
 
 const lists = [
   { id: "todo", name: "未着手" },
@@ -6,13 +6,34 @@ const lists = [
   { id: "done", name: "完了" },
 ];
 
-let cards = [
-  { id: nextId++, listId: "todo", order: 0, title: "要件定義書を読み返す", description: "", priority: "高", dueDate: "2026-09-01" },
-  { id: nextId++, listId: "todo", order: 1, title: "画面設計を確認する", description: "", priority: "中", dueDate: "" },
-  { id: nextId++, listId: "doing", order: 0, title: "プロトタイプを作る", description: "HTML/CSS/JSのみで作成", priority: "中", dueDate: "" },
-  { id: nextId++, listId: "doing", order: 1, title: "ドラッグ&ドロップを試す", description: "", priority: "低", dueDate: "2026-08-20" },
-  { id: nextId++, listId: "done", order: 0, title: "要件定義をまとめる", description: "", priority: "低", dueDate: "2026-08-15" },
+const DEFAULT_CARDS = [
+  { id: 1, listId: "todo", order: 0, title: "要件定義書を読み返す", description: "", priority: "高", dueDate: "2026-09-01" },
+  { id: 2, listId: "todo", order: 1, title: "画面設計を確認する", description: "", priority: "中", dueDate: "" },
+  { id: 3, listId: "doing", order: 0, title: "プロトタイプを作る", description: "HTML/CSS/JSのみで作成", priority: "中", dueDate: "" },
+  { id: 4, listId: "doing", order: 1, title: "ドラッグ&ドロップを試す", description: "", priority: "低", dueDate: "2026-08-20" },
+  { id: 5, listId: "done", order: 0, title: "要件定義をまとめる", description: "", priority: "低", dueDate: "2026-08-15" },
 ];
+
+function loadCards() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {
+    // localStorageが使えない・壊れている場合は初期データにフォールバックする
+  }
+  return DEFAULT_CARDS.map((c) => ({ ...c }));
+}
+
+function saveCards() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  } catch {
+    // 保存できなくても画面表示自体は継続する
+  }
+}
+
+let cards = loadCards();
+let nextId = cards.reduce((max, c) => Math.max(max, c.id), 0) + 1;
 
 const PRIORITY_ORDER = { 高: 0, 中: 1, 低: 2 };
 
@@ -86,6 +107,7 @@ function moveCardBeforeTarget(draggedId, targetListId, targetCardId) {
 }
 
 function render() {
+  saveCards();
   board.innerHTML = "";
 
   lists.forEach((list) => {
@@ -145,11 +167,12 @@ function render() {
     const cardListEl = document.createElement("div");
     cardListEl.className = "card-list";
 
-    listCards.forEach((card) => {
+    listCards.forEach((card, index) => {
       if (editingCardId === card.id) {
         cardListEl.appendChild(buildForm(card, list.id));
       } else {
-        cardListEl.appendChild(buildCard(card));
+        const nextCardId = listCards[index + 1]?.id ?? null;
+        cardListEl.appendChild(buildCard(card, nextCardId));
       }
     });
 
@@ -173,7 +196,13 @@ function render() {
   });
 }
 
-function buildCard(card) {
+function dropPositionFromPointer(e, cardEl) {
+  const rect = cardEl.getBoundingClientRect();
+  const isUpperHalf = e.clientY < rect.top + rect.height / 2;
+  return isUpperHalf ? "before" : "after";
+}
+
+function buildCard(card, nextCardId) {
   const cardEl = document.createElement("div");
   cardEl.className = "card";
   cardEl.draggable = true;
@@ -184,17 +213,26 @@ function buildCard(card) {
     cardEl.classList.add("dragging");
   });
   cardEl.addEventListener("dragend", () => {
-    cardEl.classList.remove("dragging");
+    cardEl.classList.remove("dragging", "drop-before", "drop-after");
   });
   cardEl.addEventListener("dragover", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (draggingCardId === null || draggingCardId === card.id) return;
+    const position = dropPositionFromPointer(e, cardEl);
+    cardEl.classList.toggle("drop-before", position === "before");
+    cardEl.classList.toggle("drop-after", position === "after");
+  });
+  cardEl.addEventListener("dragleave", () => {
+    cardEl.classList.remove("drop-before", "drop-after");
   });
   cardEl.addEventListener("drop", (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (draggingCardId === null || draggingCardId === card.id) return;
-    moveCardBeforeTarget(draggingCardId, card.listId, card.id);
+    const position = dropPositionFromPointer(e, cardEl);
+    const beforeCardId = position === "before" ? card.id : nextCardId;
+    moveCardBeforeTarget(draggingCardId, card.listId, beforeCardId);
     draggingCardId = null;
     render();
   });

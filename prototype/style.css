@@ -20,6 +20,16 @@ body {
   font-size: 20px;
 }
 
+.prototype-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
 .board {
   display: flex;
   gap: 16px;
@@ -85,6 +95,14 @@ body {
 
 .card.dragging {
   opacity: 0.5;
+}
+
+.card.drop-before {
+  border-top: 2px solid #2f5d8a;
+}
+
+.card.drop-after {
+  border-bottom: 2px solid #2f5d8a;
 }
 
 .card-title {
